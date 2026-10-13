@@ -1,0 +1,9 @@
+# Generated websites belong in their own repositories, not in this generator.
+/*
+!/.gitignore
+!/README.md
+!/setup.ps1
+!/setup.sh
+!/neue-website.bat
+!/template/
+!/tools/

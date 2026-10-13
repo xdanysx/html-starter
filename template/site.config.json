@@ -1,0 +1,71 @@
+{
+  "notice": "Briefing-Datei für den Coding-Assistenten, nicht im Browser laden. TODO-Werte vor der Veröffentlichung klären. Rechtliche Anforderungen hängen von Betreiber, Land und Website-Funktionen ab.",
+  "site": {
+    "name": "TODO: Markenname",
+    "domain": "https://example.de",
+    "language": "de",
+    "purpose": "TODO: Zweck der Website",
+    "audience": "TODO: Zielgruppe",
+    "tone": "TODO: Tonalität und Ansprache",
+    "primaryAction": "TODO: wichtigste Aktion"
+  },
+  "design": {
+    "visualDirection": "TODO: gewünschte Bildsprache und Stilrichtung",
+    "primaryColor": "#1b6248",
+    "accentColor": "#d5ed83",
+    "backgroundColor": "#f3f4ef",
+    "headingFont": "TODO: lokal verfügbare Schrift oder Systemschrift",
+    "bodyFont": "TODO: lokal verfügbare Schrift oder Systemschrift",
+    "referenceUrls": []
+  },
+  "business": {
+    "displayName": "TODO: angezeigter Name",
+    "legalName": "TODO: vollständiger Name des Betreibers",
+    "legalForm": "TODO: Rechtsform oder nicht zutreffend",
+    "address": {
+      "street": "TODO: Straße und Hausnummer",
+      "postalCode": "TODO: PLZ",
+      "city": "TODO: Ort",
+      "country": "TODO: Land"
+    },
+    "email": "TODO: E-Mail-Adresse",
+    "phone": "TODO: Telefonnummer oder nicht zutreffend",
+    "registerCourtAndNumber": "TODO: Angaben oder nicht zutreffend",
+    "vatId": "TODO: Umsatzsteuer-ID oder nicht zutreffend",
+    "responsiblePerson": "TODO: verantwortliche Person oder nicht zutreffend"
+  },
+  "legalAndPrivacy": {
+    "jurisdiction": "TODO: Land und gegebenenfalls Bundesland",
+    "hostingProvider": "TODO: Anbieter und relevante Verarbeitung",
+    "contactForm": "TODO: keines oder Anbieter und Datenverarbeitung",
+    "analytics": "TODO: keines oder Tool und Konfiguration",
+    "cookiesOrConsentTool": "TODO: keines oder Tool und Zweck",
+    "externalServicesAndEmbeds": [],
+    "otherPersonalDataProcessing": [],
+    "reviewedByOperatorOrLegalAdvisor": false
+  },
+  "content": {
+    "mainKeywords": [],
+    "verifiedFacts": [],
+    "proofPoints": [],
+    "pages": [
+      { "file": "index.html", "purpose": "Startseite", "include": true },
+      { "file": "leistungen.html", "purpose": "Leistungen", "include": true },
+      { "file": "ueber-uns.html", "purpose": "Über uns", "include": true },
+      { "file": "kontakt.html", "purpose": "Kontakt", "include": true },
+      { "file": "impressum.html", "purpose": "Anbieterkennzeichnung, sofern erforderlich", "include": true },
+      { "file": "datenschutz.html", "purpose": "Datenschutzhinweise für die tatsächliche Datenverarbeitung", "include": true }
+    ]
+  },
+  "assets": [
+    {
+      "file": "assets/img/hero-startseite.webp",
+      "role": "Hero-Bild der Startseite",
+      "width": 2400,
+      "height": 1350,
+      "alt": "TODO: Bildinhalt sachlich beschreiben",
+      "focalPoint": "TODO: zum Beispiel Person rechts, links Freiraum für Text",
+      "sourceOrLicense": "TODO: Quelle und Nutzungsrechte"
+    }
+  ]
+}

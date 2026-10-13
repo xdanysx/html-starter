@@ -1,0 +1,17 @@
+<!-- COMPONENT: header | Auf jeder Seite identisch. Direkt nach <body> einfügen. -->
+<!-- Pro Seite: aria-current="page" nur beim Link der aktuellen Seite setzen. -->
+<a class="skip-link" href="#main">Zum Inhalt springen</a>
+<header class="site-header">
+  <div class="container site-header__inner">
+    <a class="site-header__logo" href="/">TODO: Markenname</a>
+    <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="site-nav">Menü</button>
+    <nav id="site-nav" class="site-nav" aria-label="Hauptnavigation">
+      <ul class="site-nav__list">
+        <li><a class="site-nav__link" href="/" aria-current="page">Start</a></li>
+        <li><a class="site-nav__link" href="/leistungen.html">Leistungen</a></li>
+        <li><a class="site-nav__link" href="/ueber-uns.html">Über uns</a></li>
+        <li><a class="site-nav__link" href="/kontakt.html">Kontakt</a></li>
+      </ul>
+    </nav>
+  </div>
+</header>
