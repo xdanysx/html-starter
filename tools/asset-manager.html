@@ -132,6 +132,11 @@
     .config-fields > .fields { padding-top: 15px; }
     .config-fields textarea { min-height: 82px; }
     .config-help { margin: 0; padding-top: 10px; color: var(--muted); font-size: 12px; }
+    .config-help.field-wide { grid-column: 1 / -1; }
+    .reference-list { display: grid; gap: 7px; }
+    .reference-item { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 9px 11px; border: 1px solid var(--line); border-radius: 5px; background: #f8f9f6; }
+    .reference-item__name { overflow: hidden; font-size: 13px; text-overflow: ellipsis; white-space: nowrap; }
+    .reference-item__type { flex: 0 0 auto; color: var(--muted); font-size: 11px; }
     .page-list { display: grid; gap: 10px; padding-top: 14px; }
     .page-row { display: grid; grid-template-columns: minmax(130px, 1fr) minmax(150px, 1.3fr) auto auto; gap: 9px; align-items: end; }
     .page-row input[type="checkbox"] { width: 18px; height: 18px; margin: 0 0 11px; accent-color: var(--green); }
@@ -160,6 +165,7 @@
     .file-info { margin: 8px 0 0; overflow: hidden; color: var(--muted); font-size: 12px; text-overflow: ellipsis; white-space: nowrap; }
     .fields { min-width: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
     .field { min-width: 0; display: grid; gap: 5px; }
+    .field[hidden] { display: none; }
     .field-wide { grid-column: 1 / -1; }
     .field label, .field-label { font-size: 12px; font-weight: 700; }
     .field input, .field select, .field textarea {
@@ -267,23 +273,56 @@
             <div class="field"><label for="design-primary">Primärfarbe</label><input class="color-input" id="design-primary" type="color"></div>
             <div class="field"><label for="design-accent">Akzentfarbe</label><input class="color-input" id="design-accent" type="color"></div>
             <div class="field"><label for="design-background">Hintergrundfarbe</label><input class="color-input" id="design-background" type="color"></div>
-            <div class="field"><label for="design-heading-font">Überschriftenschrift</label><input id="design-heading-font" type="text" placeholder="Lokale Schrift oder Systemschrift"></div>
-            <div class="field"><label for="design-body-font">Textschrift</label><input id="design-body-font" type="text" placeholder="Lokale Schrift oder Systemschrift"></div>
-            <div class="field field-wide"><label for="design-references">Design-Referenzen (eine URL pro Zeile)</label><textarea id="design-references"></textarea></div>
+            <div class="field"><label for="design-heading-font-source">Quelle Überschriftenschrift</label><select id="design-heading-font-source"><option value="system">Systemschrift</option><option value="local">Lokale WOFF2-Datei</option><option value="google">Google Fonts (extern)</option></select></div>
+            <div class="field"><label for="design-heading-font">Schriftfamilie Überschrift</label><input id="design-heading-font" type="text" placeholder="z. B. Georgia, serif"></div>
+            <div class="field field-wide" id="design-heading-font-file-field" hidden><label for="design-heading-font-file">Pfad zur WOFF2-Datei</label><input id="design-heading-font-file" type="text" placeholder="assets/fonts/marke-regular.woff2"></div>
+            <div class="field"><label for="design-body-font-source">Quelle Textschrift</label><select id="design-body-font-source"><option value="system">Systemschrift</option><option value="local">Lokale WOFF2-Datei</option><option value="google">Google Fonts (extern)</option></select></div>
+            <div class="field"><label for="design-body-font">Schriftfamilie Text</label><input id="design-body-font" type="text" placeholder="z. B. system-ui, sans-serif"></div>
+            <div class="field field-wide" id="design-body-font-file-field" hidden><label for="design-body-font-file">Pfad zur WOFF2-Datei</label><input id="design-body-font-file" type="text" placeholder="assets/fonts/marke-regular.woff2"></div>
+            <p class="warning field-wide" id="google-font-warning" hidden>Google Fonts werden extern geladen und übermitteln beim Abruf Verbindungsdaten an Google. System- oder lokale WOFF2-Schriften vermeiden diese Verbindung. Externe Fonts nur nach ausdrücklicher Bestätigung und Datenschutzprüfung verwenden.</p>
+            <div class="field field-wide"><label for="design-references">Design-Referenzen als URL (eine pro Zeile)</label><textarea id="design-references" placeholder="https://beispiel.de/design"></textarea></div>
+            <div class="field field-wide"><label for="design-reference-files">Referenzbilder oder PDFs</label><input id="design-reference-files" type="file" accept="image/*,application/pdf,.pdf" multiple></div>
+            <div class="field field-wide reference-list" id="design-reference-list" aria-live="polite"></div>
+            <p class="config-help field-wide">Dateien werden unter <code>references/design/</code> abgelegt und nur als visuelle Orientierung genutzt, nicht als Website-Inhalt veröffentlicht.</p>
           </div></div>
         </details>
 
         <details class="config-section" open>
           <summary>Betreiber und Kontakt</summary>
           <div class="config-fields"><div class="fields">
+            <div class="field"><label for="business-operator-type">Betreiberart</label><select id="business-operator-type"><option value="person">Einzelperson / Einzelunternehmen</option><option value="organization">Unternehmen / Organisation</option></select></div>
+            <div class="field"><label id="business-first-label" for="business-first">Vorname Betreiber</label><input id="business-first" type="text"></div>
+            <div class="field"><label id="business-last-label" for="business-last">Nachname Betreiber</label><input id="business-last" type="text"></div>
+            <div class="field" id="business-legal-field" hidden><label for="business-legal">Vollständiger Firmen-/Organisationsname</label><input id="business-legal" type="text"></div>
             <div class="field"><label for="business-display">Anzeigename</label><input id="business-display" type="text"></div>
-            <div class="field"><label for="business-legal">Vollständiger Betreibername</label><input id="business-legal" type="text"></div>
-            <div class="field"><label for="business-form">Rechtsform</label><input id="business-form" type="text"></div>
-            <div class="field"><label for="business-responsible">Verantwortliche Person</label><input id="business-responsible" type="text"></div>
-            <div class="field"><label for="business-street">Straße und Hausnummer</label><input id="business-street" type="text"></div>
+            <div class="field"><label for="business-form">Rechtsform</label><select id="business-form">
+              <option value="">Bitte auswählen</option>
+              <option>Einzelunternehmen / Einzelfirma</option>
+              <option>e.K.</option>
+              <option>GbR</option>
+              <option>OHG (Deutschland)</option>
+              <option>OG (Österreich)</option>
+              <option>KG</option>
+              <option>GmbH</option>
+              <option>UG (haftungsbeschränkt)</option>
+              <option>GmbH &amp; Co. KG (Deutschland)</option>
+              <option>AG</option>
+              <option>FlexCo / FlexKapG (Österreich)</option>
+              <option>Kollektivgesellschaft (Schweiz)</option>
+              <option>Kommanditgesellschaft (Schweiz)</option>
+              <option>Verein / Verband</option>
+              <option value="__other__">Andere Rechtsform</option>
+              <option value="not-applicable">Nicht zutreffend</option>
+            </select></div>
+            <div class="field" id="business-form-other-field" hidden><label for="business-form-other">Rechtsform angeben</label><input id="business-form-other" type="text"></div>
+            <div class="field"><label for="business-responsible-mode">Verantwortliche Person</label><select id="business-responsible-mode"><option value="operator">Betreiber / Vertretungsberechtigte Person</option><option value="other">Andere Person</option></select></div>
+            <div class="field" id="business-responsible-other-field" hidden><label for="business-responsible-other">Name der verantwortlichen Person</label><input id="business-responsible-other" type="text"></div>
+            <div class="field"><label for="business-street">Straße</label><input id="business-street" type="text"></div>
+            <div class="field"><label for="business-house-number">Hausnummer</label><input id="business-house-number" type="text"></div>
             <div class="field"><label for="business-postal">Postleitzahl</label><input id="business-postal" type="text"></div>
             <div class="field"><label for="business-city">Ort</label><input id="business-city" type="text"></div>
-            <div class="field"><label for="business-country">Land</label><input id="business-country" type="text"></div>
+            <div class="field"><label for="business-country">Land</label><select id="business-country"><option value="DE">Deutschland</option><option value="AT">Österreich</option><option value="CH">Schweiz</option><option value="other">Anderes Land</option></select></div>
+            <div class="field" id="business-country-other-field" hidden><label for="business-country-other">Land angeben</label><input id="business-country-other" type="text"></div>
             <div class="field"><label for="business-email">E-Mail</label><input id="business-email" type="email"></div>
             <div class="field"><label for="business-phone">Telefon</label><input id="business-phone" type="tel"></div>
             <div class="field"><label for="business-register">Registergericht und Nummer</label><input id="business-register" type="text"></div>
@@ -312,6 +351,8 @@
               <div class="field"><label for="content-keywords">Hauptkeywords (eine pro Zeile)</label><textarea id="content-keywords"></textarea></div>
               <div class="field"><label for="content-facts">Belegte Fakten (eine pro Zeile)</label><textarea id="content-facts"></textarea></div>
               <div class="field field-wide"><label for="content-proof">Belege und Vertrauenssignale (eine pro Zeile)</label><textarea id="content-proof"></textarea></div>
+              <label class="checkline field-wide" for="content-research-keywords"><input id="content-research-keywords" type="checkbox"><span>Keywords zum Thema selbst recherchieren lassen<small>Rechercheergebnisse und Suchvolumen nicht erfinden.</small></span></label>
+              <label class="checkline field-wide" for="content-research-facts"><input id="content-research-facts" type="checkbox"><span>Themenbezogene Fakten selbst recherchieren lassen<small>Nur mit nachvollziehbaren Quellen; keine Firmen-, Kontakt- oder Rechtsangaben recherchieren.</small></span></label>
             </div>
             <div class="section-heading"><h2>Seiten</h2><button class="button button-secondary" id="add-page" type="button">Seite hinzufügen</button></div>
             <div class="page-list" id="page-list"></div>
@@ -335,17 +376,17 @@
           <span class="asset-count" id="asset-count">0 Bilder</span>
         </div>
         <div class="asset-list" id="asset-list">
-          <p class="empty-state">Füge Bilder hinzu. Für jedes Bild brauchst du eine kurze Bezeichnung, einen passenden Alt-Text und die Quelle oder Lizenz.</p>
+          <p class="empty-state">Füge Bilder hinzu, wähle Rolle und Zielseite und ergänze Alt-Text sowie Quelle oder Lizenz.</p>
         </div>
 
         <p class="warning" id="support-warning" hidden>Dein Browser unterstützt den sicheren Ordnerzugriff nicht. Öffne das Formular mit Microsoft Edge oder Chrome über den mitgelieferten Starter.</p>
-        <footer>Es werden keine Bilder an einen externen Dienst gesendet. Das Formular optimiert oder konvertiert die Originaldateien nicht.</footer>
+        <footer>Es werden keine Bilder oder PDFs an einen externen Dienst gesendet. Das Formular optimiert oder konvertiert die Originaldateien nicht.</footer>
       </div>
 
       <aside class="side-panel" aria-labelledby="next-title">
         <p class="eyebrow" style="color: var(--lime)">Nächster Schritt</p>
         <h2 id="next-title">Ins Projekt übernehmen</h2>
-        <p>Alle Briefingfelder und Bilddateien werden in der gewählten Projektmappe gespeichert. Unbekannte Konfigurationswerte bleiben erhalten.</p>
+        <p>Alle Briefingfelder, Website-Bilder und privaten Designreferenzen werden in der gewählten Projektmappe gespeichert. Unbekannte Konfigurationswerte bleiben erhalten.</p>
         <div class="summary" aria-live="polite">
           <div class="summary-line"><span>Projekt</span><strong id="summary-project">Nicht gewählt</strong></div>
           <div class="summary-line"><span>Bilder</span><strong id="summary-count">0</strong></div>
@@ -363,13 +404,18 @@
       { value: "hero", label: "Hero-Bild" },
       { value: "logo", label: "Logo" },
       { value: "team", label: "Team" },
-      { value: "angebot", label: "Leistung / Angebot" },
+      { value: "leistung", label: "Leistung / Angebot" },
       { value: "referenz", label: "Referenz" },
+      { value: "blog", label: "Blog" },
+      { value: "produkt", label: "Produkt" },
       { value: "bild", label: "Sonstiges" }
     ];
     const fileInput = document.querySelector("#image-files");
+    const referenceFileInput = document.querySelector("#design-reference-files");
     const assetList = document.querySelector("#asset-list");
+    const referenceList = document.querySelector("#design-reference-list");
     const rows = [];
+    const referenceRows = [];
     let projectHandle = null;
     let projectConfig = null;
 
@@ -385,11 +431,88 @@
       status.style.color = isError ? "#ffb39f" : "#f3d88e";
     };
 
+    const appendReferenceItem = (name, typeLabel, onRemove) => {
+      const item = document.createElement("div");
+      item.className = "reference-item";
+      const label = document.createElement("span");
+      label.className = "reference-item__name";
+      label.textContent = name;
+      const type = document.createElement("span");
+      type.className = "reference-item__type";
+      type.textContent = typeLabel;
+      item.append(label, type);
+      if (onRemove) {
+        const remove = document.createElement("button");
+        remove.type = "button";
+        remove.className = "text-button";
+        remove.textContent = "Entfernen";
+        remove.addEventListener("click", onRemove);
+        item.append(remove);
+      }
+      referenceList.append(item);
+    };
+
+    const renderReferenceList = () => {
+      referenceList.replaceChildren();
+      for (const reference of projectConfig?.design?.referenceFiles ?? []) {
+        const name = typeof reference === "string" ? reference : reference.name || reference.file;
+        appendReferenceItem(name, "Gespeichert");
+      }
+      for (const row of referenceRows) {
+        const isPdf = row.file.name.toLowerCase().endsWith(".pdf");
+        appendReferenceItem(row.file.name, isPdf ? "PDF-Referenz" : "Bildreferenz", () => {
+          referenceRows.splice(referenceRows.indexOf(row), 1);
+          renderReferenceList();
+        });
+      }
+    };
+
+    const addReferenceFile = (file) => {
+      const isPdf = file.type === "application/pdf" || file.name.toLowerCase().endsWith(".pdf");
+      if (!file.type.startsWith("image/") && !isPdf) {
+        setStatus(`${file.name} ist kein unterstütztes Bild oder PDF.`, true);
+        return;
+      }
+      const row = { file, savedPath: "" };
+      referenceRows.push(row);
+      renderReferenceList();
+    };
+
+    const pageTargets = () => {
+      const pages = projectConfig?.content?.pages?.filter((page) => page.include !== false) ?? [];
+      return [{ file: "global", purpose: "Websiteweit" }, ...pages];
+    };
+
+    const updateAssetPageOptions = (row) => {
+      const targets = pageTargets();
+      const previousPage = row.page.value;
+      row.page.replaceChildren();
+      for (const target of targets) {
+        const option = document.createElement("option");
+        option.value = target.file;
+        option.textContent = target.file === "global" ? "Websiteweit" : `${target.purpose || target.file} (${target.file})`;
+        row.page.append(option);
+      }
+      const defaultPage = targets.find((target) => target.file === "index.html")?.file
+        ?? targets.find((target) => target.file !== "global")?.file
+        ?? "global";
+      row.page.value = targets.some((target) => target.file === previousPage) ? previousPage : defaultPage;
+    };
+
     const updateFilename = (row) => {
-      const role = row.role.value;
-      const label = slugify(row.label.value) || "bild";
+      const pageSlug = row.page.value === "global"
+        ? "website"
+        : row.page.value === "index.html"
+          ? "startseite"
+          : slugify(row.page.value.replace(/\.html$/i, ""));
+      const descriptor = slugify(row.label.value);
+      const nameParts = row.role.value === "hero"
+        ? ["hero", pageSlug]
+        : row.role.value === "logo"
+          ? ["logo", descriptor || "marke"]
+          : [row.role.value, pageSlug, descriptor || "bild"];
       const extension = row.file.name.split(".").pop().toLowerCase().replace("jpeg", "jpg");
-      row.filename.textContent = `${role}-${label}.${extension}`;
+      row.filename.textContent = `${nameParts.filter(Boolean).join("-")}.${extension}`;
       updateSummary();
     };
 
@@ -402,7 +525,7 @@
       document.querySelector("#project-name").textContent = projectHandle?.name ?? "Noch kein Ordner ausgewählt";
       if (rows.length) assetList.querySelector(".empty-state")?.remove();
       if (!rows.length && !assetList.querySelector(".empty-state")) {
-        assetList.innerHTML = '<p class="empty-state">Füge Bilder hinzu. Für jedes Bild brauchst du eine kurze Bezeichnung, einen passenden Alt-Text und die Quelle oder Lizenz.</p>';
+        assetList.innerHTML = '<p class="empty-state">Füge Bilder hinzu, wähle Rolle und Zielseite und ergänze Alt-Text sowie Quelle oder Lizenz.</p>';
       }
     };
 
@@ -467,6 +590,10 @@
         row.role.append(option);
       }
 
+      row.page = document.createElement("select");
+      row.page.id = `page-${rows.length}`;
+      updateAssetPageOptions(row);
+
       row.label = document.createElement("input");
       row.label.id = `label-${rows.length}`;
       row.label.required = true;
@@ -497,7 +624,10 @@
       row.focal.placeholder = "z. B. Person rechts, Platz links";
 
       const roleField = makeField("Verwendung", row.role);
-      const labelField = makeField("Kurzbezeichnung", row.label);
+      const pageField = makeField("Zielseite", row.page);
+      const labelField = makeField("Motiv / SEO-Bezeichnung", row.label);
+      row.label.placeholder = "z. B. buero-beratung";
+      row.label.required = row.role.value !== "hero";
       const altField = makeField("Alt-Text", row.alt, true);
       const sourceField = makeField("Quelle / Nutzungsrecht", row.source, true);
       const focalField = makeField("Fokuspunkt (optional)", row.focal, true);
@@ -509,7 +639,7 @@
       filenameLabel.className = "field-label";
       filenameLabel.textContent = "Dateiname in assets/img/";
       filenameWrap.append(filenameLabel, row.filename);
-      fields.append(roleField, labelField, altField, decorativeLabel, sourceField, focalField, filenameWrap);
+      fields.append(roleField, pageField, labelField, altField, decorativeLabel, sourceField, focalField, filenameWrap);
 
       const remove = document.createElement("button");
       remove.type = "button";
@@ -534,9 +664,13 @@
       });
       row.alt.addEventListener("input", updateSummary);
       row.label.addEventListener("input", () => updateFilename(row));
-      row.role.addEventListener("change", () => updateFilename(row));
+      row.page.addEventListener("change", () => updateFilename(row));
+      row.role.addEventListener("change", () => {
+        row.label.required = row.role.value !== "hero";
+        updateFilename(row);
+      });
       row.validate = () => {
-        const invalidField = !row.label.value.trim()
+        const invalidField = row.label.required && !row.label.value.trim()
           ? row.label
           : !row.decorative.checked && !row.alt.value.trim()
             ? row.alt
@@ -564,6 +698,26 @@
 
     const linesFrom = (id) => document.querySelector(id).value.split(/\r?\n/).map((line) => line.trim()).filter(Boolean);
     const setValue = (id, value) => { document.querySelector(id).value = value ?? ""; };
+    const countryNames = { DE: "Deutschland", AT: "Österreich", CH: "Schweiz" };
+
+    const updateBusinessFields = () => {
+      const operatorType = document.querySelector("#business-operator-type").value;
+      const isOrganization = operatorType === "organization";
+      document.querySelector("#business-legal-field").hidden = !isOrganization;
+      document.querySelector("#business-first-label").textContent = isOrganization ? "Vorname vertretungsberechtigte Person" : "Vorname Betreiber";
+      document.querySelector("#business-last-label").textContent = isOrganization ? "Nachname vertretungsberechtigte Person" : "Nachname Betreiber";
+      document.querySelector("#business-form-other-field").hidden = document.querySelector("#business-form").value !== "__other__";
+      document.querySelector("#business-responsible-other-field").hidden = document.querySelector("#business-responsible-mode").value !== "other";
+      document.querySelector("#business-country-other-field").hidden = document.querySelector("#business-country").value !== "other";
+    };
+
+    const updateFontFields = () => {
+      const headingSource = document.querySelector("#design-heading-font-source").value;
+      const bodySource = document.querySelector("#design-body-font-source").value;
+      document.querySelector("#design-heading-font-file-field").hidden = headingSource !== "local";
+      document.querySelector("#design-body-font-file-field").hidden = bodySource !== "local";
+      document.querySelector("#google-font-warning").hidden = headingSource !== "google" && bodySource !== "google";
+    };
 
     const addPage = (page = {}) => {
       const row = document.createElement("div");
@@ -611,8 +765,16 @@
       const design = config.design ?? {};
       const business = config.business ?? {};
       const address = business.address ?? {};
+      const legacyStreet = String(address.street ?? "");
+      const legacyStreetMatch = legacyStreet.match(/^(.*\S)\s+(\d+[a-zA-Z]?(?:\s*[-/]\s*\d+[a-zA-Z]?)?)$/);
       const privacy = config.legalAndPrivacy ?? {};
       const content = config.content ?? {};
+      const legalName = String(business.legalName ?? "");
+      const operatorType = business.operatorType ?? (legalName && !legalName.includes("TODO") ? "organization" : "person");
+      const legalForm = String(business.legalForm ?? "");
+      const standardLegalForms = ["", "Einzelunternehmen / Einzelfirma", "e.K.", "GbR", "OHG (Deutschland)", "OG (Österreich)", "KG", "GmbH", "UG (haftungsbeschränkt)", "GmbH & Co. KG (Deutschland)", "AG", "FlexCo / FlexKapG (Österreich)", "Kollektivgesellschaft (Schweiz)", "Kommanditgesellschaft (Schweiz)", "Verein / Verband", "__other__", "not-applicable"];
+      const country = String(address.country ?? "");
+      const normalizedCountry = ({ de: "DE", deutschland: "DE", at: "AT", österreich: "AT", oesterreich: "AT", ch: "CH", schweiz: "CH" })[country.toLowerCase()];
       const values = {
         "#site-name": site.name,
         "#site-domain": site.domain,
@@ -625,17 +787,26 @@
         "#design-primary": design.primaryColor || "#1b6248",
         "#design-accent": design.accentColor || "#d5ed83",
         "#design-background": design.backgroundColor || "#f3f4ef",
+        "#design-heading-font-source": design.headingFontSource ?? "system",
         "#design-heading-font": design.headingFont,
+        "#design-heading-font-file": design.headingFontFile,
+        "#design-body-font-source": design.bodyFontSource ?? "system",
         "#design-body-font": design.bodyFont,
+        "#design-body-font-file": design.bodyFontFile,
         "#design-references": (design.referenceUrls ?? []).join("\n"),
+        "#business-operator-type": operatorType,
+        "#business-first": business.firstName,
+        "#business-last": business.lastName,
         "#business-display": business.displayName,
         "#business-legal": business.legalName,
-        "#business-form": business.legalForm,
-        "#business-responsible": business.responsiblePerson,
-        "#business-street": address.street,
+        "#business-form": standardLegalForms.includes(legalForm) ? legalForm : "__other__",
+        "#business-form-other": standardLegalForms.includes(legalForm) ? "" : legalForm,
+        "#business-street": address.streetName ?? legacyStreetMatch?.[1] ?? legacyStreet,
+        "#business-house-number": address.houseNumber ?? legacyStreetMatch?.[2] ?? "",
         "#business-postal": address.postalCode,
         "#business-city": address.city,
-        "#business-country": address.country,
+        "#business-country": normalizedCountry ?? (country && country !== "Deutschland" ? "other" : "DE"),
+        "#business-country-other": normalizedCountry || !country || country === "Deutschland" ? "" : country,
         "#business-email": business.email,
         "#business-phone": business.phone,
         "#business-register": business.registerCourtAndNumber,
@@ -652,11 +823,27 @@
         "#content-proof": (content.proofPoints ?? []).join("\n")
       };
       for (const [selector, value] of Object.entries(values)) setValue(selector, value);
+      document.querySelector("#content-research-keywords").checked = content.allowKeywordResearch === true;
+      document.querySelector("#content-research-facts").checked = content.allowFactResearch === true;
+      referenceList.replaceChildren();
+      for (const reference of design.referenceFiles ?? []) {
+        const name = typeof reference === "string" ? reference : reference.name || reference.file;
+        appendReferenceItem(name, "Gespeichert");
+      }
+      const currentLegalName = `${business.firstName ?? ""} ${business.lastName ?? ""}`.trim() || legalName;
+      const responsiblePerson = String(business.responsiblePerson ?? "");
+      const responsibleMode = !responsiblePerson || responsiblePerson === currentLegalName ? "operator" : "other";
+      setValue("#business-responsible-mode", responsibleMode);
+      setValue("#business-responsible-other", responsibleMode === "other" ? responsiblePerson : "");
       document.querySelector("#privacy-reviewed").checked = privacy.reviewedByOperatorOrLegalAdvisor === true;
       const pageList = document.querySelector("#page-list");
       pageList.replaceChildren();
       for (const page of content.pages ?? []) addPage(page);
       projectConfig = config;
+      renderReferenceList();
+      for (const row of rows) updateAssetPageOptions(row);
+      updateBusinessFields();
+      updateFontFields();
     };
 
     const applyFormToConfig = (config) => {
@@ -676,23 +863,47 @@
         primaryColor: document.querySelector("#design-primary").value,
         accentColor: document.querySelector("#design-accent").value,
         backgroundColor: document.querySelector("#design-background").value,
+        headingFontSource: document.querySelector("#design-heading-font-source").value,
         headingFont: document.querySelector("#design-heading-font").value.trim(),
+        headingFontFile: document.querySelector("#design-heading-font-source").value === "local" ? document.querySelector("#design-heading-font-file").value.trim() : "",
+        bodyFontSource: document.querySelector("#design-body-font-source").value,
         bodyFont: document.querySelector("#design-body-font").value.trim(),
+        bodyFontFile: document.querySelector("#design-body-font-source").value === "local" ? document.querySelector("#design-body-font-file").value.trim() : "",
         referenceUrls: linesFrom("#design-references")
       };
+      const operatorType = document.querySelector("#business-operator-type").value;
+      const firstName = document.querySelector("#business-first").value.trim();
+      const lastName = document.querySelector("#business-last").value.trim();
+      const legalName = operatorType === "person"
+        ? `${firstName} ${lastName}`.trim()
+        : document.querySelector("#business-legal").value.trim();
+      const legalFormChoice = document.querySelector("#business-form").value;
+      const legalForm = legalFormChoice === "__other__"
+        ? document.querySelector("#business-form-other").value.trim()
+        : legalFormChoice === "not-applicable" ? "Nicht zutreffend" : legalFormChoice;
+      const responsiblePerson = document.querySelector("#business-responsible-mode").value === "operator"
+        ? `${firstName} ${lastName}`.trim() || legalName
+        : document.querySelector("#business-responsible-other").value.trim();
+      const countryChoice = document.querySelector("#business-country").value;
+      const address = {
+        ...config.business?.address,
+        streetName: document.querySelector("#business-street").value.trim(),
+        houseNumber: document.querySelector("#business-house-number").value.trim(),
+        postalCode: document.querySelector("#business-postal").value.trim(),
+        city: document.querySelector("#business-city").value.trim(),
+        country: countryChoice === "other" ? document.querySelector("#business-country-other").value.trim() : countryNames[countryChoice]
+      };
+      delete address.street;
       config.business = {
         ...config.business,
+        operatorType,
+        firstName,
+        lastName,
         displayName: document.querySelector("#business-display").value.trim(),
-        legalName: document.querySelector("#business-legal").value.trim(),
-        legalForm: document.querySelector("#business-form").value.trim(),
-        responsiblePerson: document.querySelector("#business-responsible").value.trim(),
-        address: {
-          ...config.business?.address,
-          street: document.querySelector("#business-street").value.trim(),
-          postalCode: document.querySelector("#business-postal").value.trim(),
-          city: document.querySelector("#business-city").value.trim(),
-          country: document.querySelector("#business-country").value.trim()
-        },
+        legalName,
+        legalForm,
+        responsiblePerson,
+        address,
         email: document.querySelector("#business-email").value.trim(),
         phone: document.querySelector("#business-phone").value.trim(),
         registerCourtAndNumber: document.querySelector("#business-register").value.trim(),
@@ -714,6 +925,8 @@
         mainKeywords: linesFrom("#content-keywords"),
         verifiedFacts: linesFrom("#content-facts"),
         proofPoints: linesFrom("#content-proof"),
+        allowKeywordResearch: document.querySelector("#content-research-keywords").checked,
+        allowFactResearch: document.querySelector("#content-research-facts").checked,
         pages: Array.from(document.querySelectorAll(".page-row")).map((row) => ({
           file: row.querySelector(".page-file").value.trim(),
           purpose: row.querySelector(".page-purpose").value.trim(),
@@ -753,9 +966,23 @@
 
     document.querySelector("#add-page").addEventListener("click", () => addPage());
 
+    for (const selector of ["#business-operator-type", "#business-form", "#business-responsible-mode", "#business-country"]) {
+      document.querySelector(selector).addEventListener("change", updateBusinessFields);
+    }
+    for (const selector of ["#design-heading-font-source", "#design-body-font-source"]) {
+      document.querySelector(selector).addEventListener("change", updateFontFields);
+    }
+    updateBusinessFields();
+    updateFontFields();
+
     fileInput.addEventListener("change", async (event) => {
       for (const file of event.target.files) await addFile(file);
       fileInput.value = "";
+    });
+
+    referenceFileInput.addEventListener("change", (event) => {
+      for (const file of event.target.files) addReferenceFile(file);
+      referenceFileInput.value = "";
     });
 
     const dropzone = document.querySelector("#dropzone");
@@ -821,8 +1048,8 @@
         setStatus("Bitte bei aktiven Seiten Dateiname und Zweck korrekt ausfüllen.", true);
         return;
       }
-      if (rows.some((row) => !row.label.value.trim() || (!row.decorative.checked && !row.alt.value.trim()) || !row.source.value.trim())) {
-        const firstInvalid = rows.find((row) => !row.label.value.trim() || (!row.decorative.checked && !row.alt.value.trim()) || !row.source.value.trim());
+      if (rows.some((row) => (row.label.required && !row.label.value.trim()) || (!row.decorative.checked && !row.alt.value.trim()) || !row.source.value.trim())) {
+        const firstInvalid = rows.find((row) => (row.label.required && !row.label.value.trim()) || (!row.decorative.checked && !row.alt.value.trim()) || !row.source.value.trim());
         firstInvalid?.validate();
         setStatus("Bitte Kurzbezeichnung, Alt-Text und Quelle ergänzen.", true);
         return;
@@ -840,6 +1067,9 @@
         const imageDirectory = rows.length
           ? await (await projectHandle.getDirectoryHandle("assets", { create: true })).getDirectoryHandle("img", { create: true })
           : null;
+        const referenceDirectory = referenceRows.length
+          ? await (await projectHandle.getDirectoryHandle("references", { create: true })).getDirectoryHandle("design", { create: true })
+          : null;
         const reserved = new Set();
         const imported = [];
 
@@ -852,9 +1082,14 @@
             await writable.close();
             row.savedPath = filename;
           }
+          const pagePurpose = row.page.value === "global"
+            ? "Websiteweit"
+            : projectConfig.content?.pages?.find((page) => page.file === row.page.value)?.purpose || row.page.value;
+          const roleDescription = `${roles.find((role) => role.value === row.role.value).label}: ${pagePurpose}${row.label.value.trim() ? ` - ${row.label.value.trim()}` : ""}`;
           imported.push({
             file: `assets/img/${filename}`,
-            role: `${roles.find((role) => role.value === row.role.value).label}: ${row.label.value.trim()}`,
+            role: roleDescription,
+            page: row.page.value,
             width: row.width,
             height: row.height,
             alt: row.decorative.checked ? "" : row.alt.value.trim(),
@@ -870,6 +1105,35 @@
           return !replacedByPath && !isHeroExample;
         }).concat(imported);
 
+        const reservedReferenceNames = new Set();
+        const importedReferences = [];
+        for (const row of referenceRows) {
+          const originalName = row.file.name;
+          const extension = originalName.includes(".") ? originalName.split(".").pop().toLowerCase() : "";
+          const baseName = slugify(originalName.replace(/\.[^.]+$/, "")) || "designreferenz";
+          const desiredName = extension ? `${baseName}.${extension}` : baseName;
+          const filename = row.savedPath ?? await uniqueName(referenceDirectory, desiredName, reservedReferenceNames);
+          if (!row.savedPath) {
+            const fileHandle = await referenceDirectory.getFileHandle(filename, { create: true });
+            const writable = await fileHandle.createWritable();
+            await writable.write(row.file);
+            await writable.close();
+            row.savedPath = filename;
+          }
+          importedReferences.push({
+            file: `references/design/${filename}`,
+            name: originalName,
+            mediaType: row.file.type || (extension === "pdf" ? "application/pdf" : "image/*"),
+            purpose: "visual-design-reference"
+          });
+        }
+        const referencesByPath = new Map((config.design.referenceFiles ?? []).map((reference) => {
+          const item = typeof reference === "string" ? { file: reference, name: reference } : reference;
+          return [item.file, item];
+        }));
+        for (const reference of importedReferences) referencesByPath.set(reference.file, reference);
+        config.design.referenceFiles = Array.from(referencesByPath.values());
+
         const writableConfig = await configHandle.createWritable();
         await writableConfig.write(`${JSON.stringify(config, null, 2)}\n`);
         await writableConfig.close();
@@ -882,10 +1146,11 @@
         } catch {
           // The project files are already saved; clipboard access may be denied by browser settings.
         }
-        const imageSummary = imported.length === 1 ? "1 Bilddatei" : imported.length === 0 ? "keine Bilddateien" : `${imported.length} Bilddateien`;
+        const imageSummary = imported.length === 0 ? "keine Bilddateien" : imported.length === 1 ? "1 Bilddatei" : `${imported.length} Bilddateien`;
+        const referenceSummary = importedReferences.length === 0 ? "keine Designreferenzen" : importedReferences.length === 1 ? "1 Designreferenz" : `${importedReferences.length} Designreferenzen`;
         setStatus(copiedCommand
-          ? `Alle Formularangaben und ${imageSummary} gespeichert. /website-erstellen ist kopiert; jetzt im Copilot-Chat einfügen und absenden.`
-          : `Alle Formularangaben und ${imageSummary} gespeichert. Starte im Copilot-Chat den Prompt /website-erstellen.`);
+          ? `Briefing, ${imageSummary} und ${referenceSummary} gespeichert. /website-erstellen ist kopiert; jetzt im Copilot-Chat einfügen und absenden.`
+          : `Briefing, ${imageSummary} und ${referenceSummary} gespeichert. Starte im Copilot-Chat den Prompt /website-erstellen.`);
       } catch (error) {
         setStatus(error.message || "Speichern ist fehlgeschlagen.", true);
       } finally {

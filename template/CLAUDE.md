@@ -11,11 +11,11 @@ Die JSON-Datei ist nur Briefing für Claude und wird nicht im Browser geladen. I
 ## 2. Technischer Rahmen
 
 - Reines HTML, CSS und Vanilla-JavaScript. Kein Framework, kein Build-Schritt, kein npm.
-- Keine externen Abhängigkeiten (keine CDNs, keine Google Fonts, keine Tracking-Skripte). Schriften lokal in `assets/fonts/` als `.woff2`.
+- Keine externen Abhängigkeiten oder Tracking-Skripte standardmäßig. Systemschriften oder lokal gehostete `.woff2` aus `assets/fonts/` bevorzugen. Google Fonts nur, wenn `site.config.json` sie ausdrücklich auswählt, der Betreiber den externen Abruf bestätigt und Datenschutz-/Rechtshinweise entsprechend geprüft und aktualisiert werden.
 - Semantisches HTML5, valide, UTF-8.
 - Mobile-first, responsive ohne Frameworks (CSS Grid, Flexbox, `clamp()`).
 - Pfade sind root-relativ (`/css/style.css`). Lokal immer über einen Server testen (z. B. VS Code Live Server oder `npx serve`), nicht per Doppelklick auf die Datei.
-- `CLAUDE.md`, `site.config.json`, `.claude/` und `.git/` sind Entwicklungsdateien und dürfen nicht im öffentlichen Webroot landen. Beim Deployment nur öffentliche Seiten, `css/`, `js/`, `assets/`, `robots.txt`, `sitemap.xml` und `llms.txt` veröffentlichen.
+- `CLAUDE.md`, `site.config.json`, `references/`, `.agent-workflows/`, `.claude/`, `.github/` und `.git/` sind Entwicklungsdateien und dürfen nicht im öffentlichen Webroot landen. Beim Deployment nur öffentliche Seiten, `css/`, `js/`, `assets/`, `robots.txt`, `sitemap.xml` und `llms.txt` veröffentlichen.
 
 ## 3. Ordnerstruktur
 
@@ -33,6 +33,7 @@ Die JSON-Datei ist nur Briefing für Claude und wird nicht im Browser geladen. I
 ├── assets/
 │   ├── img/                ← Bilder (WebP/AVIF bevorzugt, SVG für Icons)
 │   └── fonts/              ← .woff2
+├── references/design/      ← private Designvorlagen; nie veröffentlichen
 ├── css/style.css           ← einzige Stylesheet-Datei, Design-Tokens oben
 ├── js/main.js              ← einzige JS-Datei, am Ende mit defer
 ├── robots.txt

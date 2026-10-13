@@ -1,5 +1,17 @@
+param(
+    [int]$Port = 8765,
+    [string]$InstanceKey = "",
+    [switch]$NoBrowser
+)
+
 $ErrorActionPreference = "Stop"
-$Port = 8765
+$InstanceKey = if ([string]::IsNullOrWhiteSpace($InstanceKey)) {
+    $RootBytes = [System.Text.Encoding]::UTF8.GetBytes($PSScriptRoot.ToLowerInvariant())
+    $HashBytes = [System.Security.Cryptography.SHA256]::Create().ComputeHash($RootBytes)
+    ([System.BitConverter]::ToString($HashBytes).Replace("-", "").ToLowerInvariant()).Substring(0, 12)
+} else {
+    $InstanceKey
+}
 $PagePath = Join-Path $PSScriptRoot "asset-manager.html"
 $Address = "http://127.0.0.1:$Port/tools/asset-manager.html"
 $Listener = [System.Net.Sockets.TcpListener]::new([System.Net.IPAddress]::Loopback, $Port)
@@ -8,18 +20,30 @@ try {
     $Listener.Start()
     Write-Host "Bildformular läuft lokal unter $Address" -ForegroundColor Green
     Write-Host "Dieses Fenster offen lassen. Mit Strg+C wird der Server beendet." -ForegroundColor DarkGray
-    Start-Process $Address
+    if (-not $NoBrowser) {
+        Start-Process $Address
+    }
 
     while ($true) {
         $Client = $Listener.AcceptTcpClient()
         try {
             $Stream = $Client.GetStream()
+            $Stream.ReadTimeout = 5000
             $Reader = [System.IO.StreamReader]::new($Stream, [System.Text.Encoding]::ASCII, $false, 1024, $true)
             $RequestLine = $Reader.ReadLine()
-            while ($null -ne ($HeaderLine = $Reader.ReadLine()) -and $HeaderLine -ne "") { }
+            while ($true) {
+                $HeaderLine = $Reader.ReadLine()
+                if ([string]::IsNullOrEmpty($HeaderLine)) { break }
+            }
 
+            $IsHealthRequest = $RequestLine -match '^GET /__health(?:\?.*)? HTTP/1\.[01]$'
             $IsPageRequest = $RequestLine -match '^GET (?:/|/tools/asset-manager\.html)(?:\?.*)? HTTP/1\.[01]$'
-            if ($IsPageRequest) {
+            if ($IsHealthRequest) {
+                $StatusLine = "HTTP/1.1 200 OK"
+                $ContentType = "text/plain; charset=utf-8"
+                $Body = [System.Text.Encoding]::UTF8.GetBytes("HTML-STARTER-FORMULAR:$InstanceKey")
+                $Csp = "default-src 'none'; frame-ancestors 'none'"
+            } elseif ($IsPageRequest) {
                 $StatusLine = "HTTP/1.1 200 OK"
                 $ContentType = "text/html; charset=utf-8"
                 $Body = [System.IO.File]::ReadAllBytes($PagePath)
@@ -37,6 +61,8 @@ try {
             $Stream.Write($Body, 0, $Body.Length)
             $Stream.Flush()
             $Reader.Dispose()
+        } catch [System.IO.IOException] {
+            # A browser can cancel a request while the response is being written.
         } finally {
             $Client.Dispose()
         }
