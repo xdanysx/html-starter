@@ -53,7 +53,18 @@
       font-family: Georgia, serif;
       font-size: 18px;
     }
+    .topbar__actions { display: flex; align-items: center; gap: 14px; }
+    .server-stop-button { min-height: 36px; padding: 6px 11px; font-size: 12px; }
+    .server-stop-button:disabled { cursor: not-allowed; opacity: .55; }
     .local-label { color: var(--muted); font-size: 13px; }
+    .server-status, .project-state { display: inline-flex; align-items: center; gap: 8px; color: var(--muted); font-size: 13px; }
+    .server-status::before, .project-state::before { width: 8px; height: 8px; flex: 0 0 8px; border-radius: 50%; background: #98a198; content: ""; }
+    .server-status[data-state="online"]::before, .project-state[data-state="saved"]::before { background: #27835c; }
+    .server-status[data-state="offline"]::before, .project-state[data-state="error"]::before { background: #bd5038; }
+    .project-state[data-state="dirty"]::before { background: #d18a27; }
+    .project-state[data-state="saving"]::before, .server-status[data-state="checking"]::before { background: #d18a27; }
+    .server-status[data-state="online"] { color: #1b6248; }
+    .server-status[data-state="offline"], .project-state[data-state="error"] { color: #9b3828; }
     main { width: min(1120px, calc(100% - 40px)); margin: 46px auto 64px; }
     .intro {
       display: flex;
@@ -91,6 +102,8 @@
     .button-secondary:hover { background: #edf0e9; }
     .layout { display: grid; grid-template-columns: minmax(0, 1fr) 290px; gap: 28px; align-items: start; }
     .main-column { min-width: 0; }
+    .main-column.is-locked .config-section, .main-column.is-locked .dropzone, .main-column.is-locked .asset-list { opacity: .58; }
+    .project-form-lock[hidden] { display: none; }
     .project-strip {
       display: flex;
       align-items: center;
@@ -205,6 +218,9 @@
     }
     @media (max-width: 520px) {
       .topbar { padding: 0 18px; }
+      .server-status { font-size: 11px; }
+      .topbar__actions { gap: 8px; }
+      .server-stop-button { min-height: 34px; padding: 5px 8px; }
       main { width: min(100% - 28px, 1120px); }
       .local-label { font-size: 11px; }
       .project-strip { align-items: start; flex-direction: column; }
@@ -224,7 +240,10 @@
 <body>
   <header class="topbar">
     <div class="brand"><span class="brand-mark" aria-hidden="true">W</span><span>Website-Briefing</span></div>
-    <span class="local-label">Lokales Starter-Werkzeug</span>
+    <div class="topbar__actions">
+      <span class="server-status" id="server-status" data-state="checking" role="status" aria-live="polite"><span id="server-status-text">Serverstatus wird geprüft</span></span>
+      <button class="button button-secondary server-stop-button" id="stop-server" type="button" disabled>Server beenden</button>
+    </div>
   </header>
 
   <main>
@@ -238,19 +257,20 @@
     </section>
 
     <div class="layout">
-      <div class="main-column">
+      <div class="main-column is-locked" id="main-column" aria-disabled="true">
         <section class="project-strip" aria-live="polite">
           <div class="project-meta">
             <p class="project-label">Ausgewähltes Projekt</p>
             <p class="project-name" id="project-name">Noch kein Ordner ausgewählt</p>
           </div>
-          <span class="local-label" id="project-state">Wird nur lokal bearbeitet</span>
+          <span class="project-state" id="project-state" data-state="empty" role="status" aria-live="polite">Kein Projekt ausgewählt</span>
         </section>
 
         <div class="section-heading">
           <h2>Projektbriefing</h2>
           <span class="asset-count">Werte aus site.config.json</span>
         </div>
+        <p class="warning project-form-lock" id="project-form-lock">Wähle zuerst den Projektordner mit einer gültigen <code>site.config.json</code>. Danach werden Formular, Uploads und Speichern freigeschaltet.</p>
         <p class="config-help">Trage echte Angaben ein. Nicht zutreffende Punkte ausdrücklich als „nicht zutreffend“ markieren; leere wichtige Felder fragt Copilot später nach.</p>
 
         <details class="config-section" open>
@@ -392,7 +412,7 @@
           <div class="summary-line"><span>Bilder</span><strong id="summary-count">0</strong></div>
           <div class="summary-line"><span>Alt-Texte</span><strong id="summary-alt">0 / 0</strong></div>
         </div>
-        <button class="button" id="save-button" type="button">Site-Config speichern &amp; Copilot-Befehl kopieren</button>
+        <button class="button" id="save-button" type="button" disabled>Site-Config speichern &amp; Copilot-Befehl kopieren</button>
         <p class="status" id="status" role="status" aria-live="polite"></p>
         <p class="privacy-note">Danach im Copilot-Chat den kopierten Befehl einfügen und absenden. Erst dann erstellt Copilot die Website.</p>
       </aside>
@@ -400,6 +420,7 @@
   </main>
 
   <script>
+    const serverStopToken = "__FORM_SERVER_STOP_TOKEN__";
     const roles = [
       { value: "hero", label: "Hero-Bild" },
       { value: "logo", label: "Logo" },
@@ -418,6 +439,8 @@
     const referenceRows = [];
     let projectHandle = null;
     let projectConfig = null;
+    let hasUnsavedChanges = false;
+    let serverStopping = false;
 
     const slugify = (value) => value
       .toLowerCase()
@@ -430,6 +453,71 @@
       status.textContent = message;
       status.style.color = isError ? "#ffb39f" : "#f3d88e";
     };
+
+    const setProjectState = (message, state) => {
+      const indicator = document.querySelector("#project-state");
+      indicator.textContent = message;
+      indicator.dataset.state = state;
+    };
+
+    const setProjectFormEnabled = (enabled) => {
+      const formColumn = document.querySelector("#main-column");
+      formColumn.classList.toggle("is-locked", !enabled);
+      formColumn.setAttribute("aria-disabled", String(!enabled));
+      document.querySelector("#project-form-lock").hidden = enabled;
+      for (const control of formColumn.querySelectorAll("input, select, textarea, button")) {
+        control.disabled = !enabled;
+      }
+      document.querySelector("#save-button").disabled = !enabled;
+    };
+
+    const markUnsaved = () => {
+      if (!projectHandle) return;
+      hasUnsavedChanges = true;
+      setProjectState("Ungespeicherte Änderungen", "dirty");
+    };
+
+    const checkServerStatus = async () => {
+      if (serverStopping) return;
+      const indicator = document.querySelector("#server-status");
+      const label = document.querySelector("#server-status-text");
+      const stopButton = document.querySelector("#stop-server");
+      indicator.dataset.state = "checking";
+      stopButton.disabled = true;
+      try {
+        const response = await fetch("/__health", { cache: "no-store" });
+        const health = await response.text();
+        const online = response.ok && health.startsWith("HTML-STARTER-FORMULAR:");
+        indicator.dataset.state = online ? "online" : "offline";
+        label.textContent = online ? "Formularserver läuft" : "Formularserver nicht erreichbar";
+        stopButton.disabled = !online;
+      } catch {
+        indicator.dataset.state = "offline";
+        label.textContent = "Formularserver nicht erreichbar";
+        stopButton.disabled = true;
+      }
+    };
+
+    document.querySelector("#stop-server").addEventListener("click", async () => {
+      if (!window.confirm("Den lokalen Formularserver wirklich beenden? Das Formular ist danach nicht mehr erreichbar.")) return;
+      const stopButton = document.querySelector("#stop-server");
+      stopButton.disabled = true;
+      setStatus("Formularserver wird beendet…");
+      try {
+        const response = await fetch("/__shutdown", {
+          method: "POST",
+          headers: { "X-Form-Server-Token": serverStopToken }
+        });
+        if (!response.ok) throw new Error("Der Server konnte nicht beendet werden.");
+        serverStopping = true;
+        document.querySelector("#server-status").dataset.state = "offline";
+        document.querySelector("#server-status-text").textContent = "Formularserver beendet";
+        setStatus("Formularserver beendet. Zum erneuten Öffnen formular-starten.bat ausführen.");
+      } catch (error) {
+        await checkServerStatus();
+        setStatus(error.message || "Der Server konnte nicht beendet werden.", true);
+      }
+    });
 
     const appendReferenceItem = (name, typeLabel, onRemove) => {
       const item = document.createElement("div");
@@ -463,6 +551,7 @@
         appendReferenceItem(row.file.name, isPdf ? "PDF-Referenz" : "Bildreferenz", () => {
           referenceRows.splice(referenceRows.indexOf(row), 1);
           renderReferenceList();
+          markUnsaved();
         });
       }
     };
@@ -476,6 +565,7 @@
       const row = { file, savedPath: "" };
       referenceRows.push(row);
       renderReferenceList();
+      markUnsaved();
     };
 
     const pageTargets = () => {
@@ -650,6 +740,7 @@
         rows.splice(rows.indexOf(row), 1);
         article.remove();
         updateSummary();
+        markUnsaved();
       });
       const actions = document.createElement("div");
       actions.className = "row-actions field-wide";
@@ -687,6 +778,7 @@
         row.width = dimensions.width;
         row.height = dimensions.height;
         row.fileInfo.textContent = `${file.name} · ${dimensions.width} × ${dimensions.height} · ${(file.size / 1024 / 1024).toFixed(1)} MB`;
+        markUnsaved();
       } catch {
         URL.revokeObjectURL(row.url);
         rows.splice(rows.indexOf(row), 1);
@@ -745,7 +837,10 @@
       remove.type = "button";
       remove.className = "text-button";
       remove.textContent = "Entfernen";
-      remove.addEventListener("click", () => row.remove());
+      remove.addEventListener("click", () => {
+        row.remove();
+        markUnsaved();
+      });
       const fileField = makeField("Datei", file);
       const purposeField = makeField("Zweck", purpose);
       fileField.classList.add("page-file-field");
@@ -951,7 +1046,9 @@
         projectHandle = await window.showDirectoryPicker({ mode: "readwrite" });
         const { config } = await readProjectConfig(projectHandle);
         populateForm(config);
-        document.querySelector("#project-state").textContent = "Briefing gefunden";
+        setProjectFormEnabled(true);
+        hasUnsavedChanges = false;
+        setProjectState("Projekt geladen · unverändert", "saved");
         setStatus("Projektordner bereit.");
         updateSummary();
       } catch (error) {
@@ -959,12 +1056,18 @@
           setStatus(error.message || "Projektordner konnte nicht gelesen werden.", true);
           projectHandle = null;
           projectConfig = null;
+          setProjectFormEnabled(false);
+          hasUnsavedChanges = false;
+          setProjectState("Projekt konnte nicht geladen werden", "error");
           updateSummary();
         }
       }
     });
 
-    document.querySelector("#add-page").addEventListener("click", () => addPage());
+    document.querySelector("#add-page").addEventListener("click", () => {
+      addPage();
+      markUnsaved();
+    });
 
     for (const selector of ["#business-operator-type", "#business-form", "#business-responsible-mode", "#business-country"]) {
       document.querySelector(selector).addEventListener("change", updateBusinessFields);
@@ -972,6 +1075,13 @@
     for (const selector of ["#design-heading-font-source", "#design-body-font-source"]) {
       document.querySelector(selector).addEventListener("change", updateFontFields);
     }
+    const formColumn = document.querySelector(".main-column");
+    formColumn.addEventListener("input", (event) => {
+      if (event.target.matches("input, select, textarea")) markUnsaved();
+    });
+    formColumn.addEventListener("change", (event) => {
+      if (event.target.matches("input, select, textarea")) markUnsaved();
+    });
     updateBusinessFields();
     updateFontFields();
 
@@ -1058,6 +1168,7 @@
       const button = document.querySelector("#save-button");
       button.disabled = true;
       button.textContent = "Konfiguration wird gespeichert…";
+      setProjectState("Speichert…", "saving");
       try {
         const { config, configHandle } = await (async () => {
           const loaded = await readProjectConfig(projectHandle);
@@ -1138,6 +1249,8 @@
         await writableConfig.write(`${JSON.stringify(config, null, 2)}\n`);
         await writableConfig.close();
         projectConfig = config;
+        hasUnsavedChanges = false;
+        setProjectState("Gespeichert", "saved");
 
         let copiedCommand = false;
         try {
@@ -1152,6 +1265,7 @@
           ? `Briefing, ${imageSummary} und ${referenceSummary} gespeichert. /website-erstellen ist kopiert; jetzt im Copilot-Chat einfügen und absenden.`
           : `Briefing, ${imageSummary} und ${referenceSummary} gespeichert. Starte im Copilot-Chat den Prompt /website-erstellen.`);
       } catch (error) {
+        setProjectState(hasUnsavedChanges ? "Änderungen nicht gespeichert" : "Speichern fehlgeschlagen", "error");
         setStatus(error.message || "Speichern ist fehlgeschlagen.", true);
       } finally {
         button.disabled = false;
@@ -1163,6 +1277,9 @@
       document.querySelector("#support-warning").hidden = false;
       document.querySelector("#choose-project").disabled = true;
     }
+    checkServerStatus();
+    const serverStatusInterval = setInterval(checkServerStatus, 5000);
+    window.addEventListener("pagehide", () => clearInterval(serverStatusInterval), { once: true });
     updateSummary();
   </script>
 </body>

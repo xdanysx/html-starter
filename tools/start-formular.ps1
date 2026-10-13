@@ -97,12 +97,12 @@ if ($instances.Count -gt 0) {
         Write-Host "  Port $($instance.Port) ($label)"
     }
     Write-Host ""
-    Write-Host "1. Vorhandene Instanz öffnen"
+    Write-Host "1. Vorhandene Instanz oeffnen"
     Write-Host "2. Neue Instanz auf einem freien Port starten"
-    Write-Host "3. Alle erkannten Formularinstanzen schließen"
+    Write-Host "3. Alle erkannten Formularinstanzen schliessen"
     Write-Host "0. Abbrechen"
     if ($instances.Where({ -not $_.Responsive }).Count -gt 0) {
-        Write-Host "Hinweis: Nicht antwortende Instanzen lassen sich nicht öffnen; schließe sie oder starte eine neue." -ForegroundColor Yellow
+        Write-Host "Hinweis: Nicht antwortende Instanzen lassen sich nicht oeffnen; schliesse sie oder starte eine neue." -ForegroundColor Yellow
     }
     $choice = Read-Host "Auswahl"
 
@@ -110,7 +110,7 @@ if ($instances.Count -gt 0) {
         "1" {
             $port = $instances[0].Port
             Start-Process "http://127.0.0.1:$port/tools/asset-manager.html"
-            Write-Host "Vorhandene Instanz auf Port $port geöffnet." -ForegroundColor Green
+            Write-Host "Vorhandene Instanz auf Port $port geoeffnet." -ForegroundColor Green
         }
         "2" {
             $port = Get-FreePort ($BasePort + 1)
@@ -123,7 +123,7 @@ if ($instances.Count -gt 0) {
             Write-Host "Alle erkannten Formularinstanzen wurden beendet. Fremde Programme wurden nicht beendet." -ForegroundColor Green
         }
         "0" { Write-Host "Abgebrochen." }
-        default { Write-Host "Ungültige Auswahl; es wurde nichts geändert." -ForegroundColor Yellow }
+        default { Write-Host "Ungueltige Auswahl; es wurde nichts geaendert." -ForegroundColor Yellow }
     }
 } else {
     $port = Get-FreePort $BasePort
